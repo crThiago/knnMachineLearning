@@ -1,5 +1,9 @@
-<html>
+<!DOCTYPE html>
+<html lang="pt-br">
     <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
         <style>
             body {
                 margin: 0px;
@@ -9,8 +13,10 @@
                 width: 100%;
                 height: 100px;
                 background: #EF9A9A;
-                text-align: center;
                 border-bottom: 2px solid #5C5757;
+            }
+            .col {
+                text-align: center;
             }
             .list-circles {
                 display: inline-block;
@@ -32,6 +38,10 @@
             .list-circles li:last-child{
                 margin-right: 0px !important;
             }
+            label {
+                font-weight: bold;
+                font-size: 16px;
+            }
             #blue-circle {
                 background: rgb(66 ,133, 244);
             }
@@ -50,36 +60,109 @@
             #purple-circle {
                 background: #ee89bc;
             }
-            #purple-gray {
-                background: #d3d3d3;
-            }
-            canvas{
+            #purple-white {
                 background: #fff;
             }
+            canvas{
+                margin-top:30px ;
+                background: #5C5757;
+            }
+
         </style>
     </head>
     <body>
         <header>
-            <!-- Compiled and minified CSS -->
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-            <ul class="list-circles">
-                <li id="blue-circle"></li>
-                <li id="red-circle"></li>
-                <li id="yellow-circle"></li>
-                <li id="green-circle"></li>
-                <li id="orange-circle"></li>
-                <li id="purple-circle"></li>
-                <li id="purple-gray"></li>
-            </ul>
+            <div class="row">
+                <div class="col s4">
+                    <label class="white-text">Pontos</label>
+                    <div>
+                    <ul class="list-circles">
+                        <li id="blue-circle" data-class="Azul"></li>
+                        <li id="red-circle" data-class="Vermelho"></li>
+                        <li id="yellow-circle" data-class="Amarelo"></li>
+                        <li id="green-circle" data-class="Verde"></li>
+                        <li id="orange-circle" data-class="Laranja"></li>
+                        <li id="purple-circle" data-class="Rosa"></li>
+                        <li id="purple-white" data-class="Branco"></li>
+                    </ul>
+                    </div>
+                </div>
+                <div class="col s4">
+                    <label class="white-text">Contante K</label>
+                    <p class="range-field" style="margin-top: 26px">
+                        <input type="range" id="value-k" min="1" max="15" value="3" />
+                    </p>
+                </div>
+                <div class="col s4">
+                    <label class="white-text">Comandos</label>
+                    <div style="margin-top: 20px;">
+                        <a id="btnStart" class="waves-effect waves-light  btn"> Buscar</a>
+                        <a id="btnClear" class="waves-effect waves-light  btn"> Limpar</a>
+                    </div>
+                </div>
+            </div>
         </header>
-        <div class="">
-            <canvas id="myCanvas" width="1000" height="600" style="border:1px solid #d3d3d3;">
-            </canvas>
-            <p class="range-field">
-                <input type="range" id="test5" min="0" max="15" />
-            </p>
-            <a id="btnStart" class="waves-effect waves-light  btn"><i class="material-icons right">play_arrow</i> Buscar</a>
-
+        <div class="row">
+            <div class="col s12">
+                <canvas id="myCanvas" width="1000" height="600" style="border:1px solid #d3d3d3;">
+                </canvas>
+            </div>
+        </div>
+        <div class="row">
+            <div id="knownPoints" class="col s3">
+                <h5 class="white-text">Pontos Classificados</h5>
+                <table class="striped responsive-table">
+                    <thead>
+                        <tr>
+                            <th>Eixo X</th>
+                            <th>Eixo Y</th>
+                            <th>Classe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div id="unknownPoints" class="col s3">
+                <h5 class="white-text">Pontos sem Classificação</h5>
+                <table class="striped responsive-table">
+                    <thead>
+                    <tr>
+                        <th>Eixo X</th>
+                        <th>Eixo Y</th>
+                        <th>Classe</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div id="distanceEuclidean" class="col s3">
+                <h5 class="white-text">Distância Euclidiana</h5>
+                <table class="striped responsive-table">
+                    <thead>
+                    <tr>
+                        <th>Distância</th>
+                        <th>Classe</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div id="constantK" class="col s3">
+                <h5 class="white-text">Constante K</h5>
+                <table class="striped responsive-table">
+                    <thead>
+                    <tr>
+                        <th>K</th>
+                        <th>Classe</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </body>
 
@@ -88,7 +171,6 @@
     <script>
         function writeMessage(canvas, message) {
             var context = canvas.getContext('2d');
-            //context.clearRect(60, 60, canvas.width, canvas.height);
             context.font = '18pt Calibri';
             context.fillStyle = 'black';
             context.fillText(message, 10, 25);
@@ -105,7 +187,9 @@
         var context = canvas.getContext('2d');
 
         var btnCicles = $('.list-circles li');
+        var btnClear  = $('#btnClear');
         var colorCircle = "rgb(66 ,133, 244)";
+        var classCircle = "Azul";
 
         var circles          = [],
             circlesUnlabeled = [];
@@ -115,10 +199,12 @@
             posx = mousePos.x;
             posy = mousePos.y;
 
-            if (colorCircle == 'rgb(211, 211, 211)') {
-                circlesUnlabeled.push({posx: posx, posy: posy, class: colorCircle});
+            if (classCircle == 'Branco') {
+                circlesUnlabeled.push({posx: posx, posy: posy, class: classCircle});
+                $("#unknownPoints tbody").append("<tr><td>"+posx+"</td><td>"+posy+"</td><td>?</td></tr>");
             } else {
-                circles.push({posx: posx, posy: posy, class: colorCircle});
+                circles.push({posx: posx, posy: posy, class: classCircle});
+                $("#knownPoints tbody").append("<tr><td>"+posx+"</td><td>"+posy+"</td><td>"+classCircle+"</td></tr>");
 
             }
             context.fillStyle = colorCircle;
@@ -133,39 +219,108 @@
             writeMessage(canvas, message);
         }, false);
 
+        btnClear.click(function () {
+            circles          = [];
+            circlesUnlabeled = [];
+            $("tbody").html("");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
         btnCicles.click(function () {
+            classCircle = $(this).attr("data-class");
             colorCircle = $(this).css("background-color");
         });
     </script>
     <script>
         var btnStart = $("#btnStart");
         var knn = [];
-        var valueDistance;
+        var valueDistance,constantK;
 
         btnStart.click(function(e){
+            $("#distanceEuclidean tbody, #constantK tbody").html("");
+
+            if($("#value-k").val() > circles.length){
+                $("#value-k").val(circles.length);
+            }
+            constantK = $("#value-k").val();
+
             if (circles[0] == undefined) {
                 Materialize.toast('Especifique pelo menos uma classe conhecida', 3000, 'rounded');
             } else if (circlesUnlabeled[0] == undefined) {
                 Materialize.toast('Coloque ao menos um ponto para ser classificado', 3000, 'rounded');
             } else {
                 for (var i = 0; i < circlesUnlabeled.length; i++ ) {
+                    var classify = [];
+                    var priority = 0;
+                    var classe = "";
+                    if (i != 0) {
+                        $("#distanceEuclidean tbody").append("<tr><td><b>Distância</b></td><td><b>Classe</b></td></tr>");
+                        $("#constantK tbody").append("<tr><td><b>K</b></td><td><b>Classe</b></td></tr>");
+                    }
+
                     for (var j = 0; j < circles.length; j++){
                         valueDistance = euclideanDistance(circles[j].posx,circles[j].posy,circlesUnlabeled[i].posx,circlesUnlabeled[i].posy);
                         knn.push({distanceE:valueDistance,class:circles[j].class});
+                        $("#distanceEuclidean tbody").append("<tr><td>"+valueDistance+"</td><td>"+circles[j].class+"</td></tr>");
                     }
 
-                    console.log(knn.sort(function(a, b){
-                                    return a.distanceE-b.distanceE
-                                }));
+                    knn.sort(function(a, b){
+                        return a.distanceE-b.distanceE
+                    });
 
+                    for (var k = 0; k < constantK; k++) {
+                        if (knn[k].class in classify){
+                            classify[knn[k].class].quantity++;
+                            $("#constantK tbody").append("<tr><td>"+Number(k+1)+"</td><td>"+knn[k].class+"</td></tr>");
+                        } else {
+                            classify[knn[k].class] = {priority:priority,quantity:1};
+                            $("#constantK tbody").append("<tr><td>"+Number(k+1)+"</td><td>"+knn[k].class+"</td></tr>");
+                            priority++;
+                        }
+                    }
+                    var keyClassify = Object.keys(classify);
 
+                    for ( k = 0; k < keyClassify.length; k++) {
+                        if (k == 0){
+                            classCircle = keyClassify[k].toString();
+                            quantityCircle = classify[keyClassify[k].toString()].quantity;
+                            priorityCircle = classify[keyClassify[k].toString()].priority;
+                        } else if (quantityCircle < classify[keyClassify[k].toString()].quantity) {
+                            classCircle = keyClassify[k].toString();
+                            quantityCircle = classify[keyClassify[k].toString()].quantity;
+                            priorityCircle = classify[keyClassify[k].toString()].priority;
+                        }
+                    }
+
+                    circles.push({posx:circlesUnlabeled[i].posx,posy:circlesUnlabeled[i].posy, class:classCircle});
+
+                    colorCircle = $(".list-circles li[data-class='"+classCircle+"']").css("background-color");
+
+                    context.fillStyle = colorCircle;
+                    context.beginPath();
+                    context.arc(circlesUnlabeled[i].posx, circlesUnlabeled[i].posy, 20, 0, 2*Math.PI);
+                    context.fill();
+                    $("#knownPoints tbody").append("<tr><td>"+circlesUnlabeled[i].posx+"</td><td>"+circlesUnlabeled[i].posy+"</td><td>"+classCircle+"</td></tr>");
                 }
+
+                circlesUnlabeled = [];
+                $("#unknownPoints tbody").html("");
+
+
             }
         });
 
         function euclideanDistance (xC,yC,xU,yU) {
             var dx = xC - xU, dy = yC - yU;
             return Math.sqrt((dx * dx) + (dy * dy));
+        }
+
+        function searchArray(nameKey, myArray){
+            for (var i=0; i < myArray.length; i++) {
+                if (myArray[i].name === nameKey) {
+                    return myArray[i];
+                }
+            }
         }
     </script>
     <!-- Compiled and minified JavaScript -->
